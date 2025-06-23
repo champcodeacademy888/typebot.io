@@ -106,9 +106,24 @@ COPY --from=builder --chown=nextjs:nodejs /app/apps/${SCOPE}/public ./apps/${SCO
 RUN ./node_modules/.bin/prisma generate --schema=packages/prisma/postgresql/schema.prisma;
 
 
-COPY scripts/${SCOPE}-entrypoint.sh ./
-RUN chmod +x ./${SCOPE}-entrypoint.sh
-ENTRYPOINT ./${SCOPE}-entrypoint.sh
+# ================================================================= #
+# === THIS IS THE NEW SECTION YOU ARE PASTING IN === #
+# Use specific entrypoints for builder and viewer, but a direct command for api
+RUN if [ "$SCOPE" = "api" ]; then \
+      echo "Using direct command for api"; \
+    else \
+      cp scripts/${SCOPE}-entrypoint.sh ./ && \
+      chmod +x ./${SCOPE}-entrypoint.sh; \
+    fi
+
+ENTRYPOINT if [ "$SCOPE" = "api" ]; then \
+      bun /app/apps/api/dist/server.js; \
+    else \
+      ./${SCOPE}-entrypoint.sh; \
+    fi
+# === END OF NEW SECTION === #
+# ================================================================= #
+
 
 EXPOSE 3000
 ENV PORT=3000
