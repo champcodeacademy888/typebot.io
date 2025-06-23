@@ -92,7 +92,7 @@ COPY --from=pruned /app/out/full/ .
 RUN SENTRYCLI_SKIP_DOWNLOAD=1 bun install
 RUN SKIP_ENV_CHECK=true bunx turbo build --filter="${SCOPE}"
 
-# ================== RELEASE ======================More actions
+# ================== RELEASE ======================
 
 FROM base AS release
 ARG SCOPE
@@ -101,27 +101,13 @@ ENV SCOPE=${SCOPE}
 COPY --from=builder /app/node_modules ./node_modules
 COPY --from=builder /app/packages/prisma/postgresql ./packages/prisma/postgresql
 
-# Copy the specific application code that this service needs
 # This line will now work because SCOPE is public-api and the code for it exists
 COPY --from=builder --chown=node:node /app/apps/${SCOPE}/.next/standalone ./
 COPY --from=builder --chown=node:node /app/apps/${SCOPE}/.next/static ./apps/${SCOPE}/.next/static
 COPY --from=builder --chown=nextjs:nodejs /app/apps/${SCOPE}/public ./apps/${SCOPE}/public
 
-# Copy the compiled API code, as it's needed by the entrypoint
-COPY --from=builder /app/apps/api/dist /app/apps/api/dist
-
 RUN ./node_modules/.bin/prisma generate --schema=packages/prisma/postgresql/schema.prisma;
 
-# Copy all entrypoint scripts
-COPY scripts/builder-entrypoint.sh .
-COPY scripts/viewer-entrypoint.sh .
-COPY scripts/entrypoint.sh .
-
-# Make them all executable
-RUN chmod +x ./*-entrypoint.sh ./entrypoint.sh
-
-# Set the new unified entrypoint as the one to run
-ENTRYPOINT [ "./entrypoint.sh" ]
 # We are now back to assuming an entrypoint exists.
 # If this fails again, we will know the public-api has no entrypoint.
 COPY scripts/${SCOPE}-entrypoint.sh ./
