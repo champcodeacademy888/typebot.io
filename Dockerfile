@@ -80,6 +80,7 @@ WORKDIR /app
 
 FROM base AS pruned
 ARG SCOPE
+ARG SCOPE_FILENAME # <-- ADD THIS LINE
 COPY . .
 RUN bunx turbo@2.4.5-canary.7 prune "${SCOPE}" --docker
 
@@ -88,6 +89,7 @@ RUN bunx turbo@2.4.5-canary.7 prune "${SCOPE}" --docker
 FROM base AS builder
 ARG BUN_PKG_MANAGER
 ARG SCOPE
+ARG SCOPE_FILENAME # <-- ADD THIS LINE
 COPY --from=pruned /app/out/full/ .
 RUN SENTRYCLI_SKIP_DOWNLOAD=1 bun install
 RUN SKIP_ENV_CHECK=true bunx turbo build --filter="${SCOPE}"
@@ -96,6 +98,7 @@ RUN SKIP_ENV_CHECK=true bunx turbo build --filter="${SCOPE}"
 
 FROM base AS release
 ARG SCOPE
+ARG SCOPE_FILENAME # <-- ADD THIS LINE
 ENV SCOPE=${SCOPE}
 
 COPY --from=builder /app/node_modules ./node_modules
@@ -110,9 +113,9 @@ RUN ./node_modules/.bin/prisma generate --schema=packages/prisma/postgresql/sche
 
 # We are now back to assuming an entrypoint exists.
 # If this fails again, we will know the public-api has no entrypoint.
-COPY scripts/${SCOPE}-entrypoint.sh ./
-RUN chmod +x ./${SCOPE}-entrypoint.sh
-ENTRYPOINT ./${SCOPE}-entrypoint.sh
+COPY scripts/${SCOPE_FILENAME}-entrypoint.sh ./ # <-- THIS LINE IS CHANGED
+RUN chmod +x ./${SCOPE_FILENAME}-entrypoint.sh # <-- THIS LINE IS CHANGED
+ENTRYPOINT ./${SCOPE_FILENAME}-entrypoint.sh # <-- THIS LINE IS CHANGED
 
 EXPOSE 3000
 ENV PORT=3000
