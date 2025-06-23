@@ -101,18 +101,29 @@ ENV SCOPE=${SCOPE}
 COPY --from=builder /app/node_modules ./node_modules
 COPY --from=builder /app/packages/prisma/postgresql ./packages/prisma/postgresql
 
-# This line will now work because SCOPE is public-api and the code for it exists
+# Copy the application code based on scope
 COPY --from=builder --chown=node:node /app/apps/${SCOPE}/.next/standalone ./
 COPY --from=builder --chown=node:node /app/apps/${SCOPE}/.next/static ./apps/${SCOPE}/.next/static
 COPY --from=builder --chown=nextjs:nodejs /app/apps/${SCOPE}/public ./apps/${SCOPE}/public
 
+# Also copy the API's dist folder, as the entrypoint might need it
+COPY --from=builder /app/apps/public-api/dist /app/apps/public-api/dist
+
 RUN ./node_modules/.bin/prisma generate --schema=packages/prisma/postgresql/schema.prisma;
 
-# We are now back to assuming an entrypoint exists.
-# If this fails again, we will know the public-api has no entrypoint.
-COPY scripts/${SCOPE}-entrypoint.sh ./
-RUN chmod +x ./${SCOPE}-entrypoint.sh
-ENTRYPOINT ./${SCOPE}-entrypoint.sh
+# Copy ALL existing entrypoint scripts
+COPY scripts/builder-entrypoint.sh .
+COPY scripts/viewer-entrypoint.sh .
+
+# Make them executable
+RUN chmod +x ./*-entrypoint.sh
+
+# Use the specific entrypoint script if it exists, otherwise run the api directly
+ENTRYPOINT if [ -f "/app/${SCOPE}-entrypoint.sh" ]; then \
+  /app/${SCOPE}-entrypoint.sh; \
+else \
+  bun /app/apps/public-api/dist/server.js; \
+fi
 
 EXPOSE 3000
 ENV PORT=3000
