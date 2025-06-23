@@ -97,33 +97,30 @@ RUN SKIP_ENV_CHECK=true bunx turbo build --filter="${SCOPE}"
 FROM base AS release
 ARG SCOPE
 ENV SCOPE=${SCOPE}
+
 COPY --from=builder /app/node_modules ./node_modules
 COPY --from=builder /app/packages/prisma/postgresql ./packages/prisma/postgresql
+
+# Copy the application code based on scope
 COPY --from=builder --chown=node:node /app/apps/${SCOPE}/.next/standalone ./
 COPY --from=builder --chown=node:node /app/apps/${SCOPE}/.next/static ./apps/${SCOPE}/.next/static
 COPY --from=builder --chown=nextjs:nodejs /app/apps/${SCOPE}/public ./apps/${SCOPE}/public
 
+# Also copy the API's dist folder, as the entrypoint might need it
+COPY --from=builder /app/apps/api/dist /app/apps/api/dist
+
 RUN ./node_modules/.bin/prisma generate --schema=packages/prisma/postgresql/schema.prisma;
 
+# Copy ALL entrypoint scripts
+COPY scripts/builder-entrypoint.sh .
+COPY scripts/viewer-entrypoint.sh .
+COPY scripts/entrypoint.sh .
 
-# ================================================================= #
-# === THIS IS THE NEW SECTION YOU ARE PASTING IN === #
-# Use specific entrypoints for builder and viewer, but a direct command for api
-RUN if [ "$SCOPE" = "api" ]; then \
-      echo "Using direct command for api"; \
-    else \
-      cp scripts/${SCOPE}-entrypoint.sh ./ && \
-      chmod +x ./${SCOPE}-entrypoint.sh; \
-    fi
+# Make them all executable
+RUN chmod +x ./*-entrypoint.sh ./entrypoint.sh
 
-ENTRYPOINT if [ "$SCOPE" = "api" ]; then \
-      bun /app/apps/api/dist/server.js; \
-    else \
-      ./${SCOPE}-entrypoint.sh; \
-    fi
-# === END OF NEW SECTION === #
-# ================================================================= #
-
+# Set the new unified entrypoint as the one to run
+ENTRYPOINT [ "./entrypoint.sh" ]
 
 EXPOSE 3000
 ENV PORT=3000
