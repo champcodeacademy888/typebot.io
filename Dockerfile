@@ -101,17 +101,17 @@ ENV SCOPE=${SCOPE}
 COPY --from=builder /app/node_modules ./node_modules
 COPY --from=builder /app/packages/prisma/postgresql ./packages/prisma/postgresql
 
-# Copy the application code based on scope
+# Copy the specific application code that this service needs
 COPY --from=builder --chown=node:node /app/apps/${SCOPE}/.next/standalone ./
 COPY --from=builder --chown=node:node /app/apps/${SCOPE}/.next/static ./apps/${SCOPE}/.next/static
 COPY --from=builder --chown=nextjs:nodejs /app/apps/${SCOPE}/public ./apps/${SCOPE}/public
 
-# Also copy the API's dist folder, as the entrypoint might need it
+# Copy the compiled API code, as it's needed by the entrypoint
 COPY --from=builder /app/apps/api/dist /app/apps/api/dist
 
 RUN ./node_modules/.bin/prisma generate --schema=packages/prisma/postgresql/schema.prisma;
 
-# Copy ALL entrypoint scripts
+# Copy all entrypoint scripts
 COPY scripts/builder-entrypoint.sh .
 COPY scripts/viewer-entrypoint.sh .
 COPY scripts/entrypoint.sh .
