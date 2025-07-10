@@ -1,0 +1,170 @@
+╔═══════════════════════════════════════════════════════════════════════════════════════╗
+║                           ONLINE CODING SCHOOL DATABASE ERD                          ║
+╚═══════════════════════════════════════════════════════════════════════════════════════╝
+
+┌─────────────────────┐            ┌─────────────────────┐            ┌─────────────────────┐
+│      PARENTS        │            │   STUDENT_PARENTS   │            │      STUDENTS       │
+│                     │◄──────────►│    (Junction)       │◄──────────►│                     │
+│ 🔑 parent_id        │     1:M    │ • student_id (FK)   │     M:1    │ 🔑 student_id       │
+│ • first_name        │            │ • parent_id (FK)    │            │ • first_name        │
+│ • last_name         │            │ • relationship_type │            │ • last_name         │
+│ • email (UNIQUE)    │            │ • is_primary_contact│            │ • date_of_birth     │
+│ • phone             │            │ • is_billing_contact│            │ • age_group         │
+│ • address           │            └─────────────────────┘            │ • skill_level       │
+│ • city              │                                               │ • preferred_timezone│
+│ • country           │                                               │ • notes             │
+│ • timezone          │                                               │ • status            │
+│ • preferred_contact │                                               │ • created_date      │
+│ • created_date      │                                               │ • updated_date      │
+│ • updated_date      │                                               └─────────────────────┘
+└─────────────────────┘                                                         │
+          │                                                                     │ 1
+          │ 1                                                                   │
+          │                                                                     │ M
+          ▼                                                                     ▼
+┌─────────────────────┐                                               ┌─────────────────────┐
+│      PAYMENTS       │                                               │     ENROLLMENTS     │
+│                     │                                               │                     │
+│ 🔑 payment_id       │◄─────────────────────────────────────────────►│ 🔑 enrollment_id    │
+│ • enrollment_id(FK) │                     1:M                       │ • student_id (FK)   │
+│ • parent_id (FK)    │                                               │ • program_id (FK)   │
+│ • amount            │                                               │ • enrollment_type   │
+│ • payment_date      │                                               │ • enrollment_date   │
+│ • payment_method    │                                               │ • start_date        │
+│ • payment_status    │                                               │ • end_date          │
+│ • transaction_id    │                                               │ • sessions_per_week │
+│ • invoice_number    │                                               │ • preferred_day     │
+│ • period_start      │                                               │ • preferred_time    │
+│ • period_end        │                                               │ • enrollment_status │
+│ • created_date      │                                               │ • payment_status    │
+│ • updated_date      │                                               │ • total_amount      │
+└─────────────────────┘                                               │ • amount_paid       │
+                                                                      │ • created_date      │
+                                                                      │ • updated_date      │
+                                                                      └─────────────────────┘
+                                                                                │
+                                                                                │ 1
+                                                                                │
+                                                                                │ M
+                                                                                ▼
+┌─────────────────────┐     ┌─────────────────────┐     ┌─────────────────────┐
+│      PROGRAMS       │     │   SESSION_BOOKINGS  │     │      SESSIONS       │
+│                     │     │                     │     │                     │
+│ 🔑 program_id       │◄───►│ 🔑 booking_id       │◄───►│ 🔑 session_id       │
+│ • program_name      │ 1:M │ • session_id (FK)   │ M:1 │ • program_id (FK)   │
+│ • description       │     │ • student_id (FK)   │     │ • tutor_id (FK)     │
+│ • recommended_age_min│     │ • enrollment_id(FK) │     │ • zoom_room_id (FK) │
+│ • recommended_age_max│     │ • booking_date      │     │ • session_type      │
+│ • difficulty_level  │     │ • booking_status    │     │ • session_date      │
+│ • duration_weeks    │     │ • attendance_status │     │ • start_time        │
+│ • lesson_duration   │     │ • feedback_rating   │     │ • end_time          │
+│ • max_students      │     │ • tutor_notes       │     │ • timezone          │
+│ • price_per_session │     │ • homework_completion│     │ • max_students      │
+│ • is_active         │     │ • created_date      │     │ • session_status    │
+│ • created_date      │     │ • updated_date      │     │ • lesson_plan_notes │
+│ • updated_date      │     └─────────────────────┘     │ • homework_assigned │
+└─────────────────────┘                                 │ • created_date      │
+          │                                             │ • updated_date      │
+          │ M                                           └─────────────────────┘
+          │                                                       │
+          │                                                       │ M
+          ▼                                                       │
+┌─────────────────────┐                                           │ 1
+│   TUTOR_PROGRAMS    │                                           ▼
+│     (Junction)      │                                 ┌─────────────────────┐
+│ • tutor_id (FK)     │◄────────────────────────────────│      TUTORS         │
+│ • program_id (FK)   │                 M:1             │                     │
+│ • proficiency_level │                                 │ 🔑 tutor_id         │
+│ • date_certified    │                                 │ • first_name        │
+│ • created_date      │                                 │ • last_name         │
+└─────────────────────┘                                 │ • email (UNIQUE)    │
+          │                                             │ • phone             │
+          │ M                                           │ • timezone          │
+          │                                             │ • hourly_rate       │
+          │ 1                                           │ • bio               │
+          ▼                                             │ • years_experience  │
+┌─────────────────────┐                                 │ • certifications    │
+│    ZOOM_ROOMS       │                                 │ • profile_image_url │
+│                     │                                 │ • status            │
+│ 🔑 room_id          │◄────────────────────────────────│ • hire_date         │
+│ • room_name         │                 1:M             │ • created_date      │
+│ • zoom_meeting_url  │                                 │ • updated_date      │
+│ • zoom_meeting_id   │                                 └─────────────────────┘
+│ • zoom_passcode     │                                           │
+│ • max_capacity      │                                           │ 1
+│ • is_active         │                                           │
+│ • created_date      │                                           │ M
+│ • updated_date      │                                           ▼
+└─────────────────────┘                                 ┌─────────────────────┐
+                                                        │  TUTOR_AVAILABILITY │
+                                                        │                     │
+                                                        │ 🔑 availability_id  │
+                                                        │ • tutor_id (FK)     │
+                                                        │ • day_of_week       │
+                                                        │ • start_time        │
+                                                        │ • end_time          │
+                                                        │ • timezone          │
+                                                        │ • is_recurring      │
+                                                        │ • effective_start   │
+                                                        │ • effective_end     │
+                                                        │ • created_date      │
+                                                        │ • updated_date      │
+                                                        └─────────────────────┘
+
+┌─────────────────────┐
+│  STUDENT_PROGRESS   │
+│                     │
+│ 🔑 progress_id      │
+│ • student_id (FK)   │────────► Links to STUDENTS
+│ • program_id (FK)   │────────► Links to PROGRAMS
+│ • session_id (FK)   │────────► Links to SESSIONS
+│ • skill_assessed    │
+│ • competency_level  │
+│ • assessment_date   │
+│ • tutor_comments    │
+│ • milestone_achieved│
+│ • next_learning_goal│
+│ • created_date      │
+│ • updated_date      │
+└─────────────────────┘
+
+╔═══════════════════════════════════════════════════════════════════════════════════════╗
+║                                 RELATIONSHIP LEGEND                                  ║
+╠═══════════════════════════════════════════════════════════════════════════════════════╣
+║  🔑 = Primary Key                   ◄────► = Many-to-Many (via Junction Table)       ║
+║  FK = Foreign Key                   ◄─────  = One-to-Many                            ║
+║  (UNIQUE) = Unique Constraint       ────── = References/Links                        ║
+║  1:M = One-to-Many Relationship     M:1 = Many-to-One Relationship                   ║
+╚═══════════════════════════════════════════════════════════════════════════════════════╝
+
+╔═══════════════════════════════════════════════════════════════════════════════════════╗
+║                            KEY BUSINESS RULES & CONSTRAINTS                          ║
+╠═══════════════════════════════════════════════════════════════════════════════════════╣
+║  • Prevent Double Booking: UNIQUE(tutor_id, session_date, start_time)               ║
+║  • Prevent Room Conflicts: UNIQUE(zoom_room_id, session_date, start_time)           ║
+║  • Student-Session Uniqueness: UNIQUE(session_id, student_id)                       ║
+║  • Trial Enrollments: Can only have 1 session booking                               ║
+║  • Weekly Recurring: Auto-generates multiple sessions                               ║
+║  • Payment Integration: Updates enrollment payment_status automatically             ║
+║  • Age Validation: Student age must match program age requirements                  ║
+║  • Time Validation: start_time < end_time for all time-based records               ║
+╚═══════════════════════════════════════════════════════════════════════════════════════╝
+
+╔═══════════════════════════════════════════════════════════════════════════════════════╗
+║                              DATA FLOW SUMMARY                                       ║
+╠═══════════════════════════════════════════════════════════════════════════════════════╣
+║  TRIAL LESSON FLOW:                                                                  ║
+║  1. Student enrolls → 2. Trial session created → 3. Session booking confirmed →     ║
+║  4. Payment processed → 5. Progress tracked                                          ║
+║                                                                                      ║
+║  WEEKLY RECURRING FLOW:                                                              ║
+║  1. Student enrolls → 2. Multiple sessions auto-generated → 3. Bookings created →   ║
+║  4. Recurring payments → 5. Progress tracked per session                             ║
+║                                                                                      ║
+║  ADMIN EFFICIENCY FEATURES:                                                          ║
+║  • Centralized program updates cascade to all enrollments                           ║
+║  • Automated session generation reduces manual scheduling                            ║
+║  • Smart availability prevents conflicts                                             ║
+║  • Integrated payment tracking                                                       ║
+║  • Real-time progress reporting                                                      ║
+╚═══════════════════════════════════════════════════════════════════════════════════════╝
